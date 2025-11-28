@@ -21,7 +21,18 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from the public directory
-app.use(express.static(path.join(__dirname, 'public')));
+const publicPath = path.join(__dirname, 'public');
+console.log('Serving static files from:', publicPath);
+app.use(express.static(publicPath));
+
+// Health Check Route
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'ok',
+        env: process.env.NODE_ENV,
+        db: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+    });
+});
 
 // Routes
 app.use('/api/categories', require('./routes/categoryRoutes'));
@@ -29,7 +40,7 @@ app.use('/api/designs', require('./routes/designRoutes'));
 app.use('/api/inquiry', require('./routes/inquiryRoutes'));
 
 // Catch-all handler for any request that doesn't match the above
-app.get('*', (req, res) => {
+app.get(/(.*)/, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
